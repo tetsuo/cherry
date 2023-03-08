@@ -1,6 +1,6 @@
 # cherry
 
-simple go http client.
+cherry implements a simple HTTP client with JSON and type validation suport.
 
 ## Example
 

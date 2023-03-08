@@ -1,3 +1,5 @@
+// package cherry implements a simple HTTP client with JSON and type
+// validation support.
 package cherry
 
 import (
