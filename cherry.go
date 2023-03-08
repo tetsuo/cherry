@@ -13,18 +13,23 @@ import (
 	validation "github.com/go-ozzo/ozzo-validation"
 )
 
-type NetworkError = net.Error
-
+// ValidationError is an alias to validation.Errors from the ozzo-validation
+// library.
 type ValidationError = validation.Errors
 
 var (
-	ErrTimeout    = errors.New("timeout")
+	// ErrTimeout represents a timeout error.
+	ErrTimeout = errors.New("timeout")
+	// ErrBadURL represents a 404 not found response.
+	ErrBadURL = errors.New("bad url")
+	// ErrBadStatus represents a response with a status code which is not 2xx.
+	ErrBadStatus = errors.New("bad status")
+	// ErrBadRequest wraps any error that might happen while converting a Request
+	// into an http.Request.
 	ErrBadRequest = errors.New("bad request")
-	ErrBadURL     = errors.New("bad url")
-	ErrBadStatus  = errors.New("bad status")
 )
 
-func toRequest[A any](r *Request[A]) (req *http.Request, err error) {
+func toRequestWithContext[A any](ctx context.Context, r *Request[A]) (req *http.Request, err error) {
 	var body io.Reader
 	if r.Body != nil && !(r.Method == "GET" || r.Method == "OPTIONS") {
 		var buf []byte
@@ -34,7 +39,7 @@ func toRequest[A any](r *Request[A]) (req *http.Request, err error) {
 		}
 		body = bytes.NewBuffer(buf)
 	}
-	req, err = http.NewRequest(r.Method, r.URL, body)
+	req, err = http.NewRequestWithContext(ctx, r.Method, r.URL, body)
 	if err != nil {
 		return
 	}
@@ -49,27 +54,30 @@ func toRequest[A any](r *Request[A]) (req *http.Request, err error) {
 	return
 }
 
+// A Client manages the HTTP connection.
 type Client interface {
+	// Do sends an HTTP request and returns an HTTP response, following policy
+	// (such as redirects, cookies, auth) as configured on the client.
 	Do(*http.Request) (*http.Response, error)
 }
 
-var todo = context.TODO()
-
+// Send creates and sends a new http.Request, returning an HTTP response and
+// a pointer to a value of type A along with an error if any encountered.
 func Send[A any](c Client, r *Request[A]) (resp *http.Response, a *A, e error) {
-	return SendWithContext(todo, c, r)
+	return SendWithContext(context.Background(), c, r)
 }
 
+// SendWithContext creates and sends a new context-aware http.Request, returning
+// an HTTP response and a pointer to a value of type A along with an error if
+// any encountered.
 func SendWithContext[A any](ctx context.Context, c Client, r *Request[A]) (resp *http.Response, a *A, e error) {
 	var (
 		req *http.Request
 		err error
 	)
-	if req, err = toRequest(r); err != nil {
+	if req, err = toRequestWithContext(ctx, r); err != nil {
 		e = fmt.Errorf("%w: %w", ErrBadRequest, err)
 		return
-	}
-	if ctx != todo {
-		req = req.WithContext(ctx)
 	}
 	if resp, err = c.Do(req); err != nil {
 		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
@@ -100,13 +108,19 @@ func SendWithContext[A any](ctx context.Context, c Client, r *Request[A]) (resp 
 	return
 }
 
+// A Request represents an HTTP request to be sent by a client.
 type Request[A any] struct {
-	URL     string
-	Method  string
+	// URL specifies the URI being requested.
+	URL string
+	// Method specifies the HTTP method (GET, POST, PUT, etc.).
+	Method string
+	// Headers contain the request header fields to be sent.
 	Headers map[string]string
-	Body    any
+	// Body is request's body.
+	Body any
 }
 
+// Get creates a new GET a return value of type A.
 func Get[A any](url string, headers map[string]string) *Request[A] {
 	return &Request[A]{
 		Method:  "GET",
@@ -115,6 +129,8 @@ func Get[A any](url string, headers map[string]string) *Request[A] {
 	}
 }
 
+// Post creates a new POST request with the specified payload and with
+// a return value of type A.
 func Post[A, I any](url string, body *I, headers map[string]string) *Request[A] {
 	return &Request[A]{
 		Method:  "POST",
@@ -124,6 +140,8 @@ func Post[A, I any](url string, body *I, headers map[string]string) *Request[A] 
 	}
 }
 
+// Put creates a new PUT request with the specified payload and with
+// a return value of type A.
 func Put[A, I any](url string, body *I, headers map[string]string) *Request[A] {
 	return &Request[A]{
 		Method:  "PUT",
@@ -133,19 +151,13 @@ func Put[A, I any](url string, body *I, headers map[string]string) *Request[A] {
 	}
 }
 
+// Patch creates a new PATCH request with the specified payload and with
+// a return value of type A.
 func Patch[A, I any](url string, body *I, headers map[string]string) *Request[A] {
 	return &Request[A]{
 		Method:  "PATCH",
 		Headers: headers,
 		URL:     url,
 		Body:    body,
-	}
-}
-
-func Head[A any](url string, headers map[string]string) *Request[A] {
-	return &Request[A]{
-		Method:  "PATCH",
-		Headers: headers,
-		URL:     url,
 	}
 }
