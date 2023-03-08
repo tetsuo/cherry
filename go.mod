@@ -1,0 +1,18 @@
+module github.com/onur1/cherry
+
+go 1.19
+
+require (
+	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
+	github.com/onur1/middleware v0.0.3
+	github.com/stretchr/testify v1.8.2
+)
+
+require (
+	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/gorilla/schema v1.2.0 // indirect
+	github.com/onur1/data v0.0.10 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+)
