@@ -18,9 +18,10 @@ type NetworkError = net.Error
 type ValidationError = validation.Errors
 
 var (
-	ErrTimeout   = errors.New("timeout")
-	ErrBadURL    = errors.New("bad url")
-	ErrBadStatus = errors.New("bad status")
+	ErrTimeout    = errors.New("timeout")
+	ErrBadRequest = errors.New("bad request")
+	ErrBadURL     = errors.New("bad url")
+	ErrBadStatus  = errors.New("bad status")
 )
 
 func toRequest[A any](r *Request[A]) (req *http.Request, err error) {
@@ -64,7 +65,7 @@ func SendWithContext[A any](ctx context.Context, c Client, r *Request[A]) (resp 
 		err error
 	)
 	if req, err = toRequest(r); err != nil {
-		e = fmt.Errorf("request: %w", err)
+		e = fmt.Errorf("%w: %w", ErrBadRequest, err)
 		return
 	}
 	if ctx != todo {
