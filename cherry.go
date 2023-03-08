@@ -21,8 +21,6 @@ var (
 	ErrTimeout   = errors.New("timeout")
 	ErrBadURL    = errors.New("bad url")
 	ErrBadStatus = errors.New("bad status")
-	ErrRequest   = errors.New("request")
-	ErrDecoder   = errors.New("decoder")
 )
 
 func toRequest[A any](r *Request[A]) (req *http.Request, err error) {
@@ -66,7 +64,7 @@ func SendWithContext[A any](ctx context.Context, c Client, r *Request[A]) (resp 
 		err error
 	)
 	if req, err = toRequest(r); err != nil {
-		e = fmt.Errorf("%w: %w", ErrRequest, err)
+		e = fmt.Errorf("request: %w", err)
 		return
 	}
 	if ctx != todo {
@@ -91,7 +89,8 @@ func SendWithContext[A any](ctx context.Context, c Client, r *Request[A]) (resp 
 	}
 	a = new(A)
 	if err = json.NewDecoder(resp.Body).Decode(a); err != nil {
-		e = fmt.Errorf("%w: %w", ErrDecoder, err)
+		a = nil
+		e = err
 		return
 	}
 	if validationErrors := validation.Validate(a); validationErrors != nil {

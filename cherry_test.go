@@ -58,7 +58,7 @@ func TestCherry(t *testing.T) {
 		request    *cherry.Request[entry]
 		middleware middleware.Middleware[any]
 		assert     func(*testing.T, *entry, *http.Response)
-		assertErr  func(*testing.T, *http.Response, error)
+		assertErr  func(*testing.T, *entry, *http.Response, error)
 		expected   entry
 	}{
 		{
@@ -79,37 +79,46 @@ func TestCherry(t *testing.T) {
 			desc:       "BadURL",
 			middleware: middleware.Status(404),
 			request:    cherry.Get[entry]("/cherry", nil),
-			assertErr: func(t *testing.T, resp *http.Response, err error) {
+			assertErr: func(t *testing.T, entry *entry, resp *http.Response, err error) {
 				assert.Equal(t, "bad url", err.Error())
 				assert.ErrorIs(t, err, cherry.ErrBadURL)
 				assert.Equal(t, "/cherry", resp.Request.URL.String())
+				assert.Nil(t, entry)
+				assert.NotNil(t, resp)
 			},
 		},
 		{
 			desc:       "BadStatus",
 			middleware: middleware.Status(400),
 			request:    cherry.Get[entry]("/", nil),
-			assertErr: func(t *testing.T, resp *http.Response, err error) {
+			assertErr: func(t *testing.T, entry *entry, resp *http.Response, err error) {
 				assert.Equal(t, "bad status", err.Error())
 				assert.ErrorIs(t, err, cherry.ErrBadStatus)
 				assert.Equal(t, 400, resp.StatusCode)
+				assert.Nil(t, entry)
+				assert.NotNil(t, resp)
 			},
 		},
 		{
 			desc:       "BadPayload",
 			middleware: middleware.PlainText("hi"),
 			request:    cherry.Get[entry]("/", nil),
-			assertErr: func(t *testing.T, resp *http.Response, err error) {
-				assert.Equal(t, "decoder: invalid character 'h' looking for beginning of value", err.Error())
-				assert.ErrorIs(t, err, cherry.ErrDecoder)
+			assertErr: func(t *testing.T, entry *entry, resp *http.Response, err error) {
+				assert.Equal(t, "invalid character 'h' looking for beginning of value", err.Error())
+				assert.Nil(t, entry)
+				assert.NotNil(t, resp)
 			},
 		},
 		{
 			desc:       "ValidationError",
 			middleware: middleware.JSON(&entry{ID: "q"}),
 			request:    cherry.Get[entry]("/", nil),
-			assertErr: func(t *testing.T, resp *http.Response, err error) {
+			assertErr: func(t *testing.T, entry *entry, resp *http.Response, err error) {
 				assert.Equal(t, "id: the length must be between 2 and 8.", err.Error())
+				assert.NotNil(t, entry)
+				assert.NotNil(t, resp)
+				_, ok := err.(validation.Errors)
+				assert.True(t, ok)
 			},
 		},
 	}
@@ -130,7 +139,7 @@ func TestCherry(t *testing.T) {
 				tC.assert(t, a, resp)
 			} else {
 				assert.Error(t, err)
-				tC.assertErr(t, resp, err)
+				tC.assertErr(t, a, resp, err)
 				return
 			}
 		})
