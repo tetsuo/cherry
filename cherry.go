@@ -78,7 +78,7 @@ func SendWithContext[A any](ctx context.Context, c Client, r *Request[A]) (resp 
 		err error
 	)
 	if req, err = toRequestWithContext(ctx, r); err != nil {
-		e = fmt.Errorf("%w: %w", ErrBadRequest, err)
+		e = fmt.Errorf("%w: %v", ErrBadRequest, err)
 		return
 	}
 	if resp, err = c.Do(req); err != nil {
