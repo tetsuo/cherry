@@ -2,18 +2,12 @@
 
 **cherry** is a simple HTTP client for Go with JSON decoding and request validation. It simplifies HTTP requests and responses by automatically handling JSON data and providing type validation through [ozzo-validation](https://github.com/go-ozzo/ozzo-validation).
 
-## Features
-
-- **Simplified HTTP Requests**: Makes HTTP requests easy with default configurations.
-- **Automatic JSON Decoding**: Parses JSON responses directly into structs.
-- **Integrated Validation**: Uses `ozzo-validation` for type-safe request and response validation.
-
 ## Installation
 
 To install the `cherry` package, use:
 
 ```sh
-go get github.com/onur1/cherry
+go get github.com/tetsuo/cherry
 ```
 
 ## Usage
@@ -28,7 +22,7 @@ import (
     "log"
     "net/http"
     validation "github.com/go-ozzo/ozzo-validation"
-    "github.com/onur1/cherry"
+    "github.com/tetsuo/cherry"
 )
 
 // Entry represents a single entry in the JSON response

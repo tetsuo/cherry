@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	validation "github.com/go-ozzo/ozzo-validation"
-	"github.com/onur1/cherry"
-	"github.com/onur1/middleware"
+	"github.com/tetsuo/cherry"
+	"github.com/tetsuo/middleware"
 	"github.com/stretchr/testify/assert"
 )
 

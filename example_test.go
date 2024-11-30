@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	validation "github.com/go-ozzo/ozzo-validation"
-	"github.com/onur1/cherry"
+	"github.com/tetsuo/cherry"
 )
 
 type Entry struct {
